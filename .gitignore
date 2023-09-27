@@ -1,0 +1,4 @@
+/venv_poetry/
+.idea/
+/.ruff_cache/
+/output/
