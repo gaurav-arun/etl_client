@@ -62,7 +62,29 @@ options:
   --lookback-days LOOKBACK_DAYS, -d LOOKBACK_DAYS
                         Number of days to look back
 
-````
+```
+
+- Run ETL jobs for solar and wind APIs for the last week and store the result in `CSV` format in the `./output` directory. 
+
+```shell
+$ python3.11 cli.py --source all  --output-format parquet --lookback-days 7
+
+[2023-09-27 13:10:39] [INFO] [__main__] - ------------------------------ Starting ETL process for all data ------------------------------
+[2023-09-27 13:10:39] [INFO] [etl.wind] - Extracting wind data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:39] [INFO] [etl.solar] - Extracting solar data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:40] [INFO] [api] - Finished fetching data for date range [2023-09-19 to 2023-09-26] from [http://localhost:8000/{date}/renewables/solargen.json?api_key=ADU8S67Ddy!d7f?]
+[2023-09-27 13:10:40] [INFO] [etl.solar] - Transforming solar data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:40] [INFO] [etl.solar] - Loading solar data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:40] [INFO] [utils] - Saved ETL output for solar data to [/Users/gaurav/projects/etl_client/output/solar_1695081600_1695686400.parquet]
+[2023-09-27 13:10:42] [INFO] [api] - Finished fetching data for date range [2023-09-19 to 2023-09-26] from [http://localhost:8000/{date}/renewables/windgen.csv?api_key=ADU8S67Ddy!d7f?]
+[2023-09-27 13:10:42] [INFO] [etl.wind] - Transforming wind data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:42] [INFO] [etl.wind] - Loading wind data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:42] [INFO] [utils] - Saved ETL output for wind data to [/Users/gaurav/projects/etl_client/output/wind_1695081600_1695686400.parquet]
+[2023-09-27 13:10:42] [INFO] [__main__] - Combining wind and solar data for date range 2023-09-19 to 2023-09-26
+[2023-09-27 13:10:42] [INFO] [utils] - Saved ETL output for combined data to [/Users/gaurav/projects/etl_client/output/combined_1695081600_1695686400.parquet]
+[2023-09-27 13:10:42] [INFO] [__main__] - ------------------------------ ETL process completed in 2.285 seconds ------------------------------
+
+```
 
 - Run ETL job for wind API for the last 7 days and store the result in `parquet` format in `./output` directory
 
@@ -79,28 +101,6 @@ $ python3.11 cli.py --source wind --output-format parquet --output-path ./output
 
 ```
 
-The output file will be created in the `./output` directory with file name `wind_<start_epoch>_<end_epoch>.parquet`
-
-- Run all the ETL jobs (Both solar and wind APIs in this case) for the last 7 days and store the result in `CSV` format in the `./output` directory
-
-```shell
-$ python3.11 cli.py --source all  --output-format csv --lookback-days 7
-
-[2023-09-27 12:19:40] [INFO] [__main__] - ------------------------------ Starting ETL process for all data ------------------------------
-[2023-09-27 12:19:40] [INFO] [etl.wind] - Extracting wind data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:40] [INFO] [etl.solar] - Extracting solar data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:40] [INFO] [api] - Finished fetching data for date range [2023-09-19 to 2023-09-26] from [http://localhost:8000/{date}/renewables/solargen.json?api_key=ADU8S67Ddy!d7f?]
-[2023-09-27 12:19:40] [INFO] [etl.solar] - Transforming solar data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:40] [INFO] [etl.solar] - Loading solar data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:40] [INFO] [utils] - Saved ETL output for solar data to [/Users/gaurav/projects/etl_client/output/solar_1695081600_1695686400.csv]
-[2023-09-27 12:19:42] [INFO] [api] - Finished fetching data for date range [2023-09-19 to 2023-09-26] from [http://localhost:8000/{date}/renewables/windgen.csv?api_key=ADU8S67Ddy!d7f?]
-[2023-09-27 12:19:42] [INFO] [etl.wind] - Transforming wind data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:42] [INFO] [etl.wind] - Loading wind data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:42] [INFO] [utils] - Saved ETL output for wind data to [/Users/gaurav/projects/etl_client/output/wind_1695081600_1695686400.csv]
-[2023-09-27 12:19:42] [INFO] [__main__] - Combining wind and solar data for date range 2023-09-19 to 2023-09-26
-[2023-09-27 12:19:42] [INFO] [utils] - Saved ETL output for combined data to [/Users/gaurav/projects/etl_client/output/combined_1695081600_1695686400.csv]
-[2023-09-27 12:19:42] [INFO] [__main__] - ------------------------------ ETL process completed in 2.366 seconds ------------------------------
-```
 
 - You can also specify the start and end date for the ETL jobs and combine the output into a single file.
 
@@ -156,18 +156,39 @@ This project uses the `logging` module for logging. The default log level is `IN
 │   └── test_utils.py
 ├── utils.py
 ```
-
-### ETL Process
-
+### Design Overview
 - This project uses `asyncio` to run ETL jobs concurrently.
 - The ETL jobs are implemented as classes that inherit from the `ETLBase` class. This allows us to add new ETL jobs in the future easily. The changes in the data at each step of the ETL are tracked in memory.
-- The CLI client is the main driver of the ETL process. It parses the command line arguments, creates the ETL jobs, and runs them concurrently.
-- `cli.etl_main()` is the main function that runs the ETL jobs. It creates the ETL jobs, runs them concurrently, and combines the output if required.
-- `cli.main()` is the main function that parses the command line arguments, starts an asyncio event loop and schedules the `cli.etl_main()` function to run.
+- CLI client triggers the ETL jobs for one or more sources (solar, wind, all) and specifies the date range. If a date range is not provided, the ETL will be performed for the last week by default.
+- The `cli.main()` starts the `asyncio` event loop and schedules the `cli.etl_main()` with arguments specified on the command-line.
+- `cli.etl_main()` creates required instances of ETL jobs and runs them concurrently. 
 
+
+### ETL Steps
+- `Extract` : `AsynDataFetcher` fetches the data from Solar and Wind API. The request throttling is handled using exponential backoff with jitter. The extracted data is stored as-is in memory.
+- `Transform`: Takes the extracted data as input, and runs transformations.
+- `Load`: Takes the transformed data and stores it in the specified format.
+  
 ### ETL Output
+Data generated by the ETL jobs are stored in the `--output-path`. The output files are be created in the `./output` directory by default with the following format `<source>_<start_epoch>_<end_epoch>.csv`.
 
+```
+combined_1695081600_1695686400.parquet 
+solar_1695081600_1695686400.parquet    
+wind_1695081600_1695686400.parquet  
+```
 
+Two output formats are supported `partquet` and `csv`. 
+
+:warn: I have added support for the `CSV` format primarily for easier debugging during development.
+
+I chose `parquet` as the default format because of several reasons:
+1. Preserves data type and the schema of the data
+2. Faster Read/Write performance for large files
+3. Smaller disk footprint because of compression
+4. Widely used in data-analysis
+5. Supported in pandas using `pyarrow` and `fastparquet`. For other good alternatives, like `ORC`, pandas do not have in-built support. 
+   
 ## Assumptions
 
 - The ETL client is designed to run on a single machine.
