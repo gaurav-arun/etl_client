@@ -33,11 +33,10 @@ $ pip install -r requirements.txt
 
 - This project uses `argparse` to parse command line arguments. To see the list of available commands, run:
 
-```commandline
-All commands should be run from the root directory of the project.
+```
+⚠️ All commands should be run from the root directory of the project.
 ```
 
-````
 ```shell
 $ python3.11 cli.py -h
 
@@ -82,7 +81,7 @@ $ python3.11 cli.py --source wind --output-format parquet --output-path ./output
 
 The output file will be created in the `./output` directory with file name `wind_<start_epoch>_<end_epoch>.parquet`
 
-- Run all the ETL jobs (Both solar and wind APIs in this case) for the last 7 days and store the result in `csv` format in `./output` directory
+- Run all the ETL jobs (Both solar and wind APIs in this case) for the last 7 days and store the result in `CSV` format in the `./output` directory
 
 ```shell
 $ python3.11 cli.py --source all  --output-format csv --lookback-days 7
@@ -119,7 +118,7 @@ $ pytest
 
 ## Logging
 
-This project uses `logging` module for logging. The default log level is `INFO`. To change the log level, set the `LOG_LEVEL` environment variable to one of the following values: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`.
+This project uses the `logging` module for logging. The default log level is `INFO`. To change the log level, set the `LOG_LEVEL` environment variable to one of the following values: `DEBUG`, `INFO`, `WARNING`, `ERROR`, and `CRITICAL`.
 
 ## Design
 
@@ -128,10 +127,10 @@ This project uses `logging` module for logging. The default log level is `INFO`.
 - `api.py` - Async API client for concurrently fetching data from the API data source.
 - `cli.py` - CLI client for running ETL jobs.
 - `etl` - ETL jobs for solar and wind data.
-- `pytest.ini` - Contains the pytest configuration.
+- `pytest.ini` - Contains the `pytest` configuration.
 - `requirements.txt` - Third-part dependencies for the project.
 - `settings.py` - Global project settings.
-- `.env` - Environment variables for the project. This project uses `python-decouple` module to load environment variables from `.env` file and update the settings. Typically, this file should not be checked into version control, but for the sake of simplicity, I have included it in the project.
+- `.env` - Environment variables for the project. This project uses the `python-decouple` module to load environment variables from the `.env` file and update the settings. Typically, this file should not be checked into version control, but for the sake of simplicity, I have included it in the project.
 - `tests` - Unit tests for the project.
 - `utils.py` - Common util functions used across the project.
 
@@ -158,13 +157,16 @@ This project uses `logging` module for logging. The default log level is `INFO`.
 ├── utils.py
 ```
 
-### ETL Design
+### ETL Process
 
 - This project uses `asyncio` to run ETL jobs concurrently.
-- The ETL jobs are implemented as classes that inherit from the `ETLBase` class. This allows us to easily add new ETL jobs in the future. The changes in the data at each step of the ETL are tracked in the member variables.
+- The ETL jobs are implemented as classes that inherit from the `ETLBase` class. This allows us to add new ETL jobs in the future easily. The changes in the data at each step of the ETL are tracked in memory.
 - The CLI client is the main driver of the ETL process. It parses the command line arguments, creates the ETL jobs, and runs them concurrently.
 - `cli.etl_main()` is the main function that runs the ETL jobs. It creates the ETL jobs, runs them concurrently, and combines the output if required.
 - `cli.main()` is the main function that parses the command line arguments, starts an asyncio event loop and schedules the `cli.etl_main()` function to run.
+
+### ETL Output
+
 
 ## Assumptions
 
@@ -176,5 +178,5 @@ This project uses `logging` module for logging. The default log level is `INFO`.
 
 - Handle streaming response for the wind API.
 - While the Extract step for ETL jobs is concurrent, the Transform and Load steps are not.
-- The Transform step is using `pandas` to transform the data, which is not designed to be concurrent. We can use `dask` to parallelize the Transform step. The Load step is also not concurrent, but we can use `aiofiles` to write the data to disk in chunks.
+- The Transform step uses `pandas` to transform the data, which is not designed to be concurrent. We can use `dask` to parallelize the Transform step. The Load step is also not concurrent, but we can use `aiofiles` to write the data to disk in chunks. The other alternative is to use `concurrent.futures.ThreadPoolExecutor` for I/O bound tasks and `concurrent.futures.ProcessPoolExecutor` for CPU-bound tasks.
 - Add more unit tests and integration tests for the project.
