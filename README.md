@@ -203,3 +203,4 @@ I chose `parquet` as the default format because of several reasons:
 - While the Extract step for ETL jobs is concurrent, the Transform and Load steps are not.
 - The Transform step uses `pandas` to transform the data, which is not designed to be concurrent. We can use `dask` to parallelize the Transform step. The Load step is also not concurrent, but we can use `aiofiles` to write the data to disk in chunks. The other alternative is to use `concurrent.futures.ThreadPoolExecutor` for I/O bound tasks and `concurrent.futures.ProcessPoolExecutor` for CPU-bound tasks.
 - Add more unit tests and integration tests for the project.
+- Separate development depedencies like `pytest`, `pytest-asyncio` and `pre-commit` from production dependencies using separate `requirements.txt` or more advanced dependency management tools like `poetry`.
