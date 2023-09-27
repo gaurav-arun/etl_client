@@ -180,7 +180,9 @@ wind_1695081600_1695686400.parquet
 
 Two output formats are supported `partquet` and `csv`. 
 
-:warn: I have added support for the `CSV` format primarily for easier debugging during development.
+```
+⚠️ I have added support for the `CSV` format primarily for easier debugging during development.
+```
 
 I chose `parquet` as the default format because of several reasons:
 1. Preserves data type and the schema of the data
